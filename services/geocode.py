@@ -1,13 +1,10 @@
 import json
-from dataclasses import dataclass
+
 import requests as r
-from requests import Response
 
 
-@dataclass
 class GeocodeApi:
-    api_key: str
-    url: str = "randex"
+    url = 'a'
 
     def get_to_yandex_geo_code(self, cord: str) -> dict:
         response = r.get(self.url)

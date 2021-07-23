@@ -27,6 +27,8 @@ class Distance(Resource):
 
         geocode = GeocodeApi()
 
-        distance_to = geocode.get_to_yandex_geo_code("312")
+        # distance_to = geocode.get_to_yandex_geo_code("312")
 
-        return distance_to
+        distance_to = 1
+
+        return {"distance_in_meters": 40000}
