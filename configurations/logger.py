@@ -9,9 +9,10 @@ def factory_logger():
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
+
     logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(level=logging.DEBUG)
+    logger.setLevel(level=logging.INFO)
 
     handler_local = RotatingFileHandler(
         f"./logs/{__name__}.log", mode="a", maxBytes=50000, backupCount=10

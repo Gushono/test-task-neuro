@@ -1,5 +1,5 @@
 from configurations import logger
-from test.unit import DefaultTestBase
+from . import DefaultTestBase
 
 
 class TestLogger(DefaultTestBase):
