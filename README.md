@@ -6,7 +6,7 @@ An API that returns the distance from the Moscow Ring Road to an especified addr
 
 ```bash
 docker build --tag test-neuro .
-docker run -d -p 5000:9007 test-neuro
+docker run -d -p 9007:9007 --name test-neuro test-neuro
 ```
 
 # Without docker
@@ -24,7 +24,8 @@ pip install -r requirements.txt
 To run the project just type in the root folder test-task-neuro
 
 ```bash
-test-task-neuro python main.py
+test-task-neuro 
+python main.py
 ```
 
 Your api now can be called in the URL http://localhost:9007/v1/distance
