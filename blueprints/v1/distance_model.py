@@ -1,4 +1,6 @@
 from flask_restplus import Namespace, Resource, fields
+
+from configurations.logger import get_logger
 from services.geocode import GeocodeApi
 
 namespace = Namespace('distance', 'Distance of two points')
@@ -25,7 +27,10 @@ class Distance(Resource):
         :return: An object of Distance
         """
 
+        logger = get_logger()
+
         geocode = GeocodeApi()
+        logger.info("Uhuuuuu")
 
         # distance_to = geocode.get_to_yandex_geo_code("312")
 
