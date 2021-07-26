@@ -24,7 +24,7 @@ pip install -r requirements.txt
 To run the project just type in the root folder test-task-neuro
 
 ```bash
-test-task-neuro 
+tests-task-neuro 
 python main.py
 ```
 

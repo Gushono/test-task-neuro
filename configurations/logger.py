@@ -2,7 +2,7 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-LOGGER_NAME = "test_logger"
+LOGGER_NAME = "logger_neuro"
 
 
 def factory_logger():

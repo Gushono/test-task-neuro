@@ -1,11 +1,14 @@
 from unittest import TestCase
 
+from .mocks.mock_google_requests import mock_google_request
+
 
 class DefaultTestBase(TestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        print("\nRunning scenario: ", self.id().rpartition('.')[-1])
+        mock_google_request()
+        print(f"\nRunning Class {self.__class__.__name__} -> Scenario: ", self.id().rpartition('.')[-1])
 
     def tearDown(self) -> None:
         print("Finished!\n")
