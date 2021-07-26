@@ -6,6 +6,7 @@ from werkzeug.exceptions import BadRequest
 
 from configurations.logger import get_logger
 from models.coordinates import Coordinates
+from models.enums import EnumSituationsAnswers
 from services.localization_service import LocalizationService
 
 namespace = Namespace('distance', 'Distance of two address')
@@ -17,8 +18,20 @@ distance_model = namespace.model('Distance', {
     ),
     'distance': fields.String(
         readonly=True,
-        description='Return de distance in km between two points'
-    )
+        description='Return de distance (text) between two points'
+    ),
+    "situation": fields.Nested(
+        namespace.model('Situation', {
+            'id': fields.String(
+                readonly=True,
+                description='Return a enum of EnumSituationsAnswers',
+                enum=[enum.name for enum in EnumSituationsAnswers]
+            ),
+            "description": fields.String(
+                readonly=True,
+                description='Return the description of the situation of the address',
+            ),
+        }))
 })
 
 parser = reqparse.RequestParser()
@@ -34,10 +47,7 @@ class Distance(Resource):
     @namespace.expect(parser)
     def get(self):
         """
-        This endpoint will return the distance between two points
-
-        :params: address -> Required query parameter that will be used to make google request
-
+        This endpoint will return the distance between MKAD and a target address. And if it is inside or outside MKAD
         """
 
         logger = get_logger()
@@ -49,7 +59,7 @@ class Distance(Resource):
 
             if self.has_address(address_name):
 
-                logger.info("Requesting to GOOGLE APIS to search lat and lng...")
+                logger.info(f"Requesting to GOOGLE APIS to search lat and lng of {address_name['address']}...")
                 initial_address_cordinate = localization_service.get_to_google_lat_and_lng("MKAD")
                 final_address_cordinate = localization_service.get_to_google_lat_and_lng(address_name['address'])
 

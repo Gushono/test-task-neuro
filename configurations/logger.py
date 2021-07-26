@@ -5,7 +5,10 @@ from logging.handlers import RotatingFileHandler
 LOGGER_NAME = "logger_neuro"
 
 
-def factory_logger():
+def factory_logger() -> logging.Logger:
+    """
+    Function responsable to fabricate the logger and configure him
+    """
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
 
@@ -27,6 +30,10 @@ def factory_logger():
     return logger
 
 
-def get_logger():
+def get_logger() -> logging.Logger:
+    """
+    Function responsable to GET the logger that are already created
+    """
+
     logger = logging.getLogger(LOGGER_NAME)
     return logger

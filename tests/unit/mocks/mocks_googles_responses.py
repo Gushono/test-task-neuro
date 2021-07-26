@@ -1,4 +1,4 @@
-class ResponseJsonMocks:
+class ResponseGoogleJsonMocks:
     RESPONSE_GOOGLE_MKAD_LOCATION = """
         {
             "results": [
