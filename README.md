@@ -38,23 +38,23 @@ To access the swagger you can use the URL http://localhost:9007/v1/doc
 ## Results
 
 # Whats was asked
-  [x] Directly Blueprint
-  [x] Set of unit tests and corner cases checks
-  [x] Documenting the code and application
+- [x] Directly Blueprint
+- [x] Set of unit tests and corner cases checks
+- [x] Documenting the code and application
   
-  [x] The address is transmitted via an HTTP request
-  [x] The functions and algorithms used are provided with informative comments
-  [x] The tests are arranged in a separate file
-  [x] Documentation in the form of readme.md the file contains instructions for using the application
-  [x] PEP8 code compliance and use of type annotations
+- [x] The address is transmitted via an HTTP request
+- [x] The functions and algorithms used are provided with informative comments
+- [x] The tests are arranged in a separate file
+- [x] Documentation in the form of readme.md the file contains instructions for using the application
+- [x] PEP8 code compliance and use of type annotations
   
-  [x] Python version no older than 3.8
-  [x] Source code must be published on Github/Gitlab/Bitbucket
+- [x] Python version no older than 3.8
+- [x] Source code must be published on Github/Gitlab/Bitbucket
   
  # What i did as a plus
-  [x] Using FLASK-RESTPLUS to use swagger
-  [x] Run application inside docker container
-  [x] Integration tests of good and bad scenarios
-  [x] Adding mocks
+- [x] Using FLASK-RESTPLUS to use swagger
+- [x] Run application inside docker container
+- [x] Integration tests of good and bad scenarios
+- [x] Adding mocks
   
 
