@@ -34,7 +34,7 @@ class GoogleService:
             params=parameters
         )
         if r.status_code == 200:
-            self.logger.info("Successful Request")
+            self.logger.info(f"Successful Request to google in path {path}")
             return json.loads(r.content)
         elif r.status_code == 400:
             self.logger.info("Bad Request")

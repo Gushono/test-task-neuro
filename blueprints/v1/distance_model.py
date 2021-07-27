@@ -1,12 +1,12 @@
 from typing import List
-from urllib.parse import ParseResult
 
 from flask_restplus import Namespace, Resource, fields, reqparse
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, Unauthorized
 
 from configurations.logger import get_logger
 from models.coordinates import Coordinates
 from models.enums import EnumSituationsAnswers
+from models.situation import Situation
 from services.localization_service import LocalizationService
 
 namespace = Namespace('distance', 'Distance of two address')
@@ -42,8 +42,9 @@ parser.add_argument('address', required=True, type=str)
 class Distance(Resource):
 
     @namespace.marshal_with(distance_model)
-    @namespace.response(500, 'Internal Server error')
     @namespace.response(400, 'Bad Request')
+    @namespace.response(401, 'Unauthorized! Google api key invalid or inexistent')
+    @namespace.response(500, 'Internal Server error')
     @namespace.expect(parser)
     def get(self):
         """
@@ -57,36 +58,41 @@ class Distance(Resource):
 
             address_name = parser.parse_args()
 
-            if self.has_address(address_name):
+            if self._has_address_as_parameter(address_name):
 
-                logger.info(f"Requesting to GOOGLE APIS to search lat and lng of {address_name['address']}...")
-                initial_address_cordinate = localization_service.get_to_google_lat_and_lng("MKAD")
+                # Same response of get_to_google_lat_and_lng('MKAD')
+                initial_address_cordinate = Coordinates(lat=55.9272706, lng=37.9187643)
                 final_address_cordinate = localization_service.get_to_google_lat_and_lng(address_name['address'])
 
                 coordinates = [initial_address_cordinate, final_address_cordinate]
 
-                if self.check_cordinates_is_valid(coordinates):
-                    logger.info("Requesting to GOOGLE APIS to search the distance between the two address...")
-                    distance_between_address = localization_service.get_distance_between_two_cordinates(coordinates)
-                    return distance_between_address
+                if self._check_coordinates_is_valid(coordinates):
 
-                raise BadRequest("BAD REQUEST! Address not found at google's api")
+                    if localization_service.verify_if_address_is_inside_mkad():
+                        return Situation(id=EnumSituationsAnswers.INSIDE_MKAD.name,
+                                         description=EnumSituationsAnswers.INSIDE_MKAD.value).to_json()
+
+                    return localization_service.get_distance_between_two_cordinates(coordinates)
+
         except BadRequest as ex:
             logger.error(f"BAD REQUEST! {ex.description}")
             raise ex
+        except Unauthorized as ex:
+            logger.error(f"UNAUTHORIZED! {ex.description}")
+            raise ex
 
     @staticmethod
-    def has_address(address: ParseResult) -> bool:
+    def _has_address_as_parameter(address: dict) -> bool:
         """
         Verify the existence of a query parameter called address
 
-        :params: address -> Object of type ParseResult with query params info inside
+        :params: address -> Dict with query params info inside
         """
 
         return True if address['address'] is not None else False
 
     @staticmethod
-    def check_cordinates_is_valid(coordinates: List[Coordinates]) -> bool:
+    def _check_coordinates_is_valid(coordinates: List[Coordinates]) -> bool:
         """
         Validates if all objects of Coordinate has values inside lat and lng attributes.
 
@@ -97,4 +103,4 @@ class Distance(Resource):
         if all(coordinates_lat_lng_valid):
             return True
 
-        return False
+        raise BadRequest("BAD REQUEST! Address not found at google's api")
