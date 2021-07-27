@@ -1,7 +1,7 @@
 import requests
 from mockito import when, ARGS, KWARGS, mock
 
-from tests.unit.mocks.mocks_googles_responses import ResponseGoogleJsonMocks
+from tests.mocks.mocks_googles_responses import ResponseGoogleJsonMocks
 
 
 def mock_google_request():

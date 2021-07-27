@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from .mocks.mock_google_requests import mock_google_request
+from tests.mocks.mock_google_requests import mock_google_request
 
 
 class DefaultTestBase(TestCase):

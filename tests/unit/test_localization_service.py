@@ -1,9 +1,9 @@
 import json
 
 from services.localization_service import LocalizationService
+from tests.mocks.mock_test_task_neuro_responses import ResponseTestTaskNeuroResponses
+from tests.mocks.mocks_googles_responses import ResponseGoogleJsonMocks
 from tests.unit import DefaultTestBase
-from tests.unit.mocks.mock_test_task_neuro_responses import ResponseTestTaskNeuroResponses
-from tests.unit.mocks.mocks_googles_responses import ResponseGoogleJsonMocks
 
 
 class TestLocalizationService(DefaultTestBase):
