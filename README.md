@@ -5,7 +5,7 @@ An API that returns the distance from the Moscow Ring Road to an especified addr
 # Using docker
 
 ```bash
-docker build --tag test-neuro .
+docker build --build-arg api_key=AIzaSyBM_fE4nQGpKwVs_B2yNI7QVjZww3odb44 --tag test-neuro .
 docker run -d -p 9007:9007 --name test-neuro test-neuro
 ```
 
