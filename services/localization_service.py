@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Tuple
 
+from haversine import haversine
 from werkzeug.exceptions import Unauthorized
 
 from configurations.logger import get_logger
@@ -11,7 +12,10 @@ from services.google_service import GoogleService
 
 class LocalizationService:
     GEOCODE_GOOGLE_API = "/maps/api/geocode/json"
-    MATRIX_GOOGLE_API = "/maps/api/distancematrix/json"
+
+    CENTER_OF_MKAD = (55.745405, 37.612182)
+    POINT_OF_THE_CIRCLE = (55.572313, 37.665133)
+    RADIUS_OF_THE_CIRCLE = 19.53146957984939  # This is the result of haversine of (CENTER_OF_MKAD, POINT_OF_THE_CIRCLE)
 
     _google_api = GoogleService()
     _logger = get_logger()
@@ -32,25 +36,48 @@ class LocalizationService:
 
         return self._format_google_response_to_lat_long(response)
 
-    def get_distance_between_two_cordinates(self, coordinates: List[Coordinates]) -> dict:
+    def get_distance_between_mkad_and_destination_address(self, coordinates: List[Coordinates]) -> dict:
         """
-        Function responsable to return the distance between two cordinates
+        Function responsable to return the distance between two coordinates in killometers and meters
 
         :param: coordinates -> List of Coordinates objects.
-                               coordinates[0] is the initial address (MKAD)
-                               coordinates[1] is the target address
+                               coordinates[0] is the destination address
 
         """
 
-        params = {
-            "origins": f"{coordinates[0].lat}, {coordinates[0].lng}",
-            "destinations": f"{coordinates[1].lat}, {coordinates[1].lng}",
+        self._logger.info("Calculating distance between mkad and target address...")
+
+        distance_in_km, distance_in_meters = self._calculate_distance_between_mkad_and_other_coordinate(
+            coordinates[0].to_tuple()
+        )
+
+        distances = {
+            "distance_in_km": distance_in_km,
+            "distance_in_meters": distance_in_meters
         }
 
-        self._logger.info("Requesting to GOOGLE APIS to search the distance between the two address...")
-        response = self._google_api.get_to_google(self.MATRIX_GOOGLE_API, parameters=params)
+        return self._format_response_distance_of_two_address(distances)
 
-        return self._format_google_response_distance_two_address(response)
+    def verify_if_address_is_inside_mkad(self, destination_coordenate: Coordinates) -> bool:
+        """
+        Verify if the address is inside of mkad using a circle as reference.
+
+        Using haversine to calculate the distance between two coordenates and using radius
+
+        """
+
+        distance_in_km, distance_in_meters = self._calculate_distance_between_mkad_and_other_coordinate(
+            destination_coordenate.to_tuple()
+        )
+
+        self._logger.info(f"Calculated radius of the circle is {self.RADIUS_OF_THE_CIRCLE}")
+        self._logger.info(f"Calculated distance of the destination {distance_in_km}")
+
+        if self._check_if_radius_circle_is_bigger_than_destination_distance(distance_in_km):
+            self._logger.info(f"Destination address {destination_coordenate.to_tuple()} is inside MKAD!")
+            return True
+
+        return False
 
     def _format_google_response_to_lat_long(self, geocode_locations: dict) -> Coordinates:
         """
@@ -58,36 +85,16 @@ class LocalizationService:
 
         Example: { lat: -22.9175898, long: -22.9175898 }
         """
-        if self._status_suceffuly_google(geocode_locations['status']):
+        if self._check_google_request_status(geocode_locations['status']):
             locations = [localization['geometry']['location'] for localization in geocode_locations['results']]
 
             return Coordinates(lat=locations[0]['lat'], lng=locations[0]['lng'])
 
         return Coordinates(None, None)
 
-    def _format_google_response_distance_two_address(self, distance_between_address: dict) -> dict:
+    def _check_google_request_status(self, status: str) -> bool:
         """
-        Format google api answer in a dict with the distance text, distance in meter and the situation.
-
-        Example: { distance: "5 km", distance_in_meters: 3000 }
-        """
-
-        if self._status_suceffuly_google(distance_between_address['rows'][0]['elements'][0]['status']):
-            distances = [distance for distance in distance_between_address['rows'][0]['elements']]
-
-            return {
-                "distance": distances[0]['distance']['text'],
-                "distance_in_meters": distances[0]['distance']['value'],
-                "situation": Situation(id=EnumSituationsAnswers.OUTSIDE_MKAD.name,
-                                       description=EnumSituationsAnswers.OUTSIDE_MKAD.value).__dict__
-            }
-
-        return Situation(id=EnumSituationsAnswers.GOOGLE_API_CANNOT_CALCULATE_DISTANCE.name,
-                         description=EnumSituationsAnswers.GOOGLE_API_CANNOT_CALCULATE_DISTANCE.value).to_json()
-
-    def _status_suceffuly_google(self, status: str) -> bool:
-        """
-        Checks if the status of google request was OK and has
+        Check if google request has a succesful complete
         """
 
         if status == 'OK':
@@ -96,10 +103,49 @@ class LocalizationService:
             self._logger.info("Request to google didn't found any result with this search!")
             return False
         elif status == 'REQUEST_DENIED':
-            raise Unauthorized("UNAUTHORIZED! Google's api key is invalid or inexistent")
+            raise Unauthorized("UNAUTHORIZED! Google's api key is invalid, inexistent or your IP is not allowed")
+
+        return False
+
+    def _calculate_distance_between_mkad_and_other_coordinate(self, any_coordinate: tuple) -> Tuple[float, float]:
+        """
+        Function that calculates the distance between two coordinates using haversine formula
+        and returning in METERS AND KM
+        """
+        distance_of_two_coordenates_in_km = haversine(self.CENTER_OF_MKAD, any_coordinate, unit='km')
+        distance_of_two_coordenates_in_meters = haversine(self.CENTER_OF_MKAD, any_coordinate, unit='m')
+
+        return distance_of_two_coordenates_in_km, distance_of_two_coordenates_in_meters
+
+    def _format_response_distance_of_two_address(self, distances: dict) -> dict:
+        """
+        Format answer in a dict with the distance in km, distance in meter and the situation.
+        """
+
+        return {
+            "distance_in_km": self._format_to_two_decimal_points(distances['distance_in_km']),
+            "distance_in_meters": self._format_to_two_decimal_points(distances['distance_in_meters']),
+            "situation": Situation(id=EnumSituationsAnswers.OUTSIDE_MKAD.name,
+                                   description=EnumSituationsAnswers.OUTSIDE_MKAD.value).__dict__
+        }
+
+    def _check_if_radius_circle_is_bigger_than_destination_distance(self, distance: float) -> bool:
+        """
+        If radius in km of the circle drawed around of MKAD is bigger than destination_distance
+
+        It means that if RADIUS_OF_THE_CIRCLE is bigger -> Inside of MKAD
+                                                 lower  -> Ouside of MKAD
+
+        """
+        if self.RADIUS_OF_THE_CIRCLE > distance:
+            return True
 
         return False
 
     @staticmethod
-    def verify_if_address_is_inside_mkad():
-        return False
+    def _format_to_two_decimal_points(distance: float) -> str:
+        """
+        Format a float value in two decimal points
+        """
+
+        return format(distance, '.2f')

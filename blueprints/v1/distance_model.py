@@ -16,9 +16,9 @@ distance_model = namespace.model('Distance', {
         readonly=True,
         description='Return de distance in meters between two points'
     ),
-    'distance': fields.String(
+    'distance_in_km': fields.String(
         readonly=True,
-        description='Return de distance (text) between two points'
+        description='Return de distance in km between two points'
     ),
     "situation": fields.Nested(
         namespace.model('Situation', {
@@ -60,19 +60,17 @@ class Distance(Resource):
 
             if self._has_address_as_parameter(address_name):
 
-                # Same response of get_to_google_lat_and_lng('MKAD')
-                initial_address_cordinate = Coordinates(lat=55.9272706, lng=37.9187643)
                 final_address_cordinate = localization_service.get_to_google_lat_and_lng(address_name['address'])
 
-                coordinates = [initial_address_cordinate, final_address_cordinate]
+                coordinates = [final_address_cordinate]
 
                 if self._check_coordinates_is_valid(coordinates):
 
-                    if localization_service.verify_if_address_is_inside_mkad():
+                    if localization_service.verify_if_address_is_inside_mkad(coordinates[0]):
                         return Situation(id=EnumSituationsAnswers.INSIDE_MKAD.name,
                                          description=EnumSituationsAnswers.INSIDE_MKAD.value).to_json()
 
-                    return localization_service.get_distance_between_two_cordinates(coordinates)
+                    return localization_service.get_distance_between_mkad_and_destination_address(coordinates)
 
         except BadRequest as ex:
             logger.error(f"BAD REQUEST! {ex.description}")
