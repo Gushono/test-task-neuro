@@ -1,6 +1,7 @@
-from flask_restplus import Api
 from flask import Blueprint
-from blueprints.v1.distance_model import namespace as distance
+from flask_restplus import Api
+
+from blueprints.v1.distance_model import namespace_distance as distance_api
 
 blueprint = Blueprint('api', __name__, url_prefix='/v1')
 
@@ -12,4 +13,4 @@ api_extension = Api(
     doc='/doc'
 )
 
-api_extension.add_namespace(distance)
+api_extension.add_namespace(distance_api)

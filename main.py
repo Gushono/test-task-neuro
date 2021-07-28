@@ -1,6 +1,6 @@
 from flask import Flask
 
-from blueprints.v1 import blueprint as distance_teste
+from blueprints.v1 import blueprint as blueprint_api_v1
 from configurations.logger import factory_logger
 
 logger = factory_logger()
@@ -11,7 +11,7 @@ def init_api():
 
     app.config['RESTPLUS_MASK_SWAGGER'] = False
 
-    app.register_blueprint(distance_teste)
+    app.register_blueprint(blueprint_api_v1)
     return app
 
 

@@ -9,9 +9,9 @@ from models.enums import EnumSituationsAnswers
 from models.situation import Situation
 from services.localization_service import LocalizationService
 
-namespace = Namespace('distance', 'Distance of two address')
+namespace_distance = Namespace('distance', 'Distance of two address')
 
-distance_model = namespace.model('Distance', {
+distance_model = namespace_distance.model('Distance', {
     'distance_in_meters': fields.String(
         readonly=True,
         description='Return de distance in meters between two points'
@@ -21,7 +21,7 @@ distance_model = namespace.model('Distance', {
         description='Return de distance in km between two points'
     ),
     "situation": fields.Nested(
-        namespace.model('Situation', {
+        namespace_distance.model('Situation', {
             'id': fields.String(
                 readonly=True,
                 description='Return a enum of EnumSituationsAnswers',
@@ -35,20 +35,22 @@ distance_model = namespace.model('Distance', {
 })
 
 parser = reqparse.RequestParser()
-parser.add_argument('address', required=True, type=str)
+parser.add_argument('address', required=True,
+                    type=str,
+                    help="You can pass address name or lat and lng separeted by comma")
 
 
-@namespace.route('')
+@namespace_distance.route('')
 class Distance(Resource):
 
-    @namespace.marshal_with(distance_model)
-    @namespace.response(400, 'Bad Request')
-    @namespace.response(401, 'Unauthorized! Google api key invalid or inexistent')
-    @namespace.response(500, 'Internal Server error')
-    @namespace.expect(parser)
+    @namespace_distance.marshal_with(distance_model)
+    @namespace_distance.response(400, 'Bad Request')
+    @namespace_distance.response(401, 'Unauthorized! Google api key invalid or inexistent')
+    @namespace_distance.response(500, 'Internal Server error')
+    @namespace_distance.expect(parser)
     def get(self):
         """
-        This endpoint will return the distance between MKAD and a target address. And if it is inside or outside MKAD
+        This endpoint will return the distance between MKAD and a target address, and if it is inside or outside MKAD
         """
 
         logger = get_logger()
